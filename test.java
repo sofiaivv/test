@@ -4,7 +4,15 @@ import java.text.SimpleDateFormat;
 
 public class test {
     public static File notebook = new File("Notebook.txt");
-    List<String> notes = getNotes();
+
+    public static List<String> notes;
+    static {
+        try {
+            notes = getNotes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(String args[]) throws IOException {
 
@@ -22,9 +30,9 @@ public class test {
         printMenu();
     }
 
-    public static void printMenu() {
+    public static void printMenu() throws IOException{
         Scanner scanner = new Scanner(System.in);
-        System.out.println("=========\n" +
+        System.out.print("=========\n" +
                 "Введите команду: \n" +
                 "#read - вывод всех записей,\n" +
                 "#write - создание новой записи,\n" +
@@ -42,34 +50,54 @@ public class test {
             case "#exit":
                 break;
             default:
-                System.out.println("Введено что-то не то");
+                System.out.println("Введено что-то не то...");
                 return;
         }
         scanner.close();
     }
 
-    public static void read() {
-        System.out.println("# read");
-
+    public static void read() throws IOException {
+        System.out.println("Записи в записной книжке:");
+        for (String note : notes) {
+            System.out.println(note);
+        }
 
         printMenu();
     };
 
-    public List<String> getNotes() {
+    public static List<String> getNotes() throws IOException {
+        List<String> notes = new ArrayList<>();
+
+        BufferedReader reader = new BufferedReader(new FileReader("Notebook.txt"));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            notes.add(line);
+        }
+        reader.close();
         return notes;
     }
 
-    public static void write() {
-        System.out.println("Введите новую запись:\n");
+    public static void write() throws IOException {
+        System.out.println("Введите новую запись:");
         Scanner scanner = new Scanner(System.in);
         String inputNote = scanner.nextLine();
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault());
         String date = dateFormat.format(new Date());
-        String note = date + " " + inputNote;
-        System.out.println(note); // заметка создана, выводится
-
-
+        String note = date + " | " + inputNote;
+        notes.add(note);
+        putNotes(notes);
+        System.out.println("Записано.");
 
         printMenu();
+    }
+
+    public static void putNotes(List<String> notes) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("Notebook.txt"));
+        for (String note : notes) {
+            writer.write(note);
+            writer.newLine();
+        }
+        writer.flush();
+        writer.close();
     }
 }
